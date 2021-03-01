@@ -1,0 +1,48 @@
+
+service: fresh-sls
+
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  environment:
+    RELEASE_TABLE: releases
+    CLIENT_ID: ${env:CLIENT_ID}
+    CLIENT_SECRET: ${env:CLIENT_SECRET}
+    ALBUM_URL: ${env:ALBUM_URL}
+    SINGLES_URL: ${env:SINGLES_URL}
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: arn:aws:dynamodb:*:*:table/releases
+
+functions:
+  releases:
+    handler: handler.releases
+
+resources:
+  Resources:
+    releases:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: itemId
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: itemId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: releases   
